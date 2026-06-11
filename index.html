@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="fin·app">
 <meta name="description" content="Gestión de gastos e ingresos personal">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230d0d0f'/><text x='50%25' y='58%25' font-size='110' text-anchor='middle' dominant-baseline='middle'>💰</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='38' fill='%230d0d0f'/><text x='50%25' y='54%25' font-size='110' text-anchor='middle' dominant-baseline='middle'>💰</text></svg>">
 <title>fin·app</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -2559,46 +2559,10 @@ if(state.currentUserId&&state.users.find(u=>u.id===state.currentUserId)){
 
 <script>
 // ══ PWA / SERVICE WORKER ══
-const SW_CODE = `
-const CACHE = 'finapp-v1';
-const ASSETS = [self.location.pathname];
-
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-  ));
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      const fresh = fetch(e.request).then(res => {
-        if (res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()));
-        return res;
-      }).catch(() => cached);
-      return cached || fresh;
-    })
-  );
-});
-`;
-
-// Register SW inline via blob
 if ('serviceWorker' in navigator) {
-  const blob = new Blob([SW_CODE], { type: 'application/javascript' });
-  const swUrl = URL.createObjectURL(blob);
-  navigator.serviceWorker.register(swUrl, { scope: '/' })
-    .then(reg => console.log('SW registered', reg.scope))
-    .catch(e => {
-      // Try registering from same origin path as fallback
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-    });
+  navigator.serviceWorker.register('sw.js')
+    .then(reg => console.log('SW ok', reg.scope))
+    .catch(e => console.log('SW error', e));
 }
 
 // ── MANIFEST inline via blob ──
@@ -2640,8 +2604,6 @@ function svgIcon(size) {
   </svg>`;
   return 'data:image/svg+xml;base64,' + btoa(svg);
 }
-
-injectManifest(true);
 
 // ── INSTALL PROMPT ──
 let deferredPrompt = null;
